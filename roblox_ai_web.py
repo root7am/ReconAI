@@ -1,64 +1,69 @@
 import streamlit as st
-import openai
+from groq import Groq
 
+# Configuration de la page
+st.set_page_config(page_title="ReconAI - Rank System", page_icon="👑")
 
-st.set_page_config(page_title="Roblox Script Master AI", page_icon="🎮")
-
-
+# --- STYLE ---
 st.markdown("""
     <style>
-    .main { background-color: #1e1e1e; color: white; }
-    .stTextInput textarea { color: #00ff00 !important; }
+    .main { background-color: #0e1117; color: white; }
+    .stTextArea textarea { background-color: #161b22; color: #00ff00; border: 1px solid #30363d; }
+    .owner-text { color: #ff4b4b; font-weight: bold; font-size: 20px; }
     </style>
     """, unsafe_allow_html=True)
 
+# --- CONFIGURATION GROQ ---
+try:
+    client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+except:
+    st.error("⚠️ Clé GROQ_API_KEY manquante !")
 
+# --- SYSTÈME DE RANK ---
 with st.sidebar:
-    st.title("⚙️ Configuration")
-    api_key = st.secrets["OPENAI_API_KEY"]
-    model_choice = st.selectbox("Modèle", ["gpt-4o", "gpt-3.5-turbo"])
-    st.info("Cette IA est spécialisée en Luau et API Roblox.")
-
+    st.title("👤 Profil Utilisateur")
+    user_key = st.text_input("Entre ton code d'accès :", type="password")
+    
+    # Définition du Rank
+    if user_key == "OWNER_RECON_2026": # C'est ton code secret !
+        rank = "OWNER"
+        st.markdown("<p class='owner-text'>RANK: OWNER (ILLIMITÉ)</p>", unsafe_allow_html=True)
+    elif user_key == "FRIEND":
+        rank = "PREMIUM"
+        st.info("RANK: PREMIUM")
+    else:
+        rank = "FREE"
+        st.warning("RANK: FREE (Limité)")
 
 def generate_roblox_script(prompt):
-    client = openai.OpenAI(api_key=api_key)
-    
-    system_prompt = """
-    Tu es RobloxDev-GPT. 
-    1. Réponds EXCLUSIVEMENT en Luau (Roblox).
-    2. Utilise 'task.wait()' et non 'wait()'.
-    3. Explique TOUJOURS où placer le script dans l'explorateur Roblox Studio.
-    4. Si l'utilisateur demande un GUI, donne les propriétés des instances.
-    """
-    
-    response = client.chat.completions.create(
-        model=model_choice,
+    completion = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
         messages=[
-            {"role": "system", "content": system_prompt},
+            {"role": "system", "content": "Tu es ReconAI, expert Roblox. Réponds en Luau."},
             {"role": "user", "content": prompt}
         ]
     )
-    return response.choices[0].message.content
+    return completion.choices[0].message.content
 
+# --- INTERFACE PRINCIPALE ---
+st.title("🤖 ReconAI Assistant")
 
-st.title("🎮 Roblox Script Master AI")
-st.subheader("Génère tes scripts Luau en un clic")
+if rank == "OWNER":
+    st.success("Bienvenue Maître. Vos crédits sont infinis.")
+else:
+    st.write("Mode gratuit activé.")
 
-user_input = st.text_area("Décris le système que tu veux (ex: Un système de vente d'objets) :", height=150)
+user_input = st.text_area("Décris ton script Roblox :", height=150)
 
-if st.button("Générer le code"):
-    if not api_key:
-        st.error("⚠️ Tu dois entrer une clé API dans la barre latérale !")
+if st.button("🚀 Générer le Script"):
+    if rank == "FREE" and len(user_input) > 100:
+        st.error("❌ Ton texte est trop long pour le mode FREE. Passe en OWNER !")
     elif user_input:
-        with st.spinner("L'IA réfléchit au meilleur code..."):
+        with st.spinner("Génération en cours..."):
             try:
                 result = generate_roblox_script(user_input)
-                st.markdown("### 📜 Résultat :")
                 st.code(result, language="lua")
-                st.success("Code généré ! Copie-le dans Roblox Studio.")
             except Exception as e:
                 st.error(f"Erreur : {e}")
     else:
-
-        st.warning("Écris quelque chose avant de valider.")
-
+        st.warning("Écris quelque chose !")
