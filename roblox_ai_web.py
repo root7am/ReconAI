@@ -15,7 +15,7 @@ st.markdown("""
 
 with st.sidebar:
     st.title("⚙️ Configuration")
-    api_key = st.text_input("Entre ta clé API OpenAI :", type="password")
+    api_key = st.secrets["OPENAI_API_KEY"]
     model_choice = st.selectbox("Modèle", ["gpt-4o", "gpt-3.5-turbo"])
     st.info("Cette IA est spécialisée en Luau et API Roblox.")
 
@@ -61,3 +61,4 @@ if st.button("Générer le code"):
     else:
 
         st.warning("Écris quelque chose avant de valider.")
+
