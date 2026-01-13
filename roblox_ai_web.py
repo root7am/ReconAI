@@ -1,10 +1,10 @@
 import streamlit as st
 import openai
 
-# Configuration de la page
+
 st.set_page_config(page_title="Roblox Script Master AI", page_icon="🎮")
 
-# --- STYLE PERSONNALISÉ ---
+
 st.markdown("""
     <style>
     .main { background-color: #1e1e1e; color: white; }
@@ -12,14 +12,14 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- BARRE LATÉRALE (CONFIG) ---
+
 with st.sidebar:
     st.title("⚙️ Configuration")
     api_key = st.text_input("Entre ta clé API OpenAI :", type="password")
     model_choice = st.selectbox("Modèle", ["gpt-4o", "gpt-3.5-turbo"])
     st.info("Cette IA est spécialisée en Luau et API Roblox.")
 
-# --- LOGIQUE DE L'IA ---
+
 def generate_roblox_script(prompt):
     client = openai.OpenAI(api_key=api_key)
     
@@ -40,7 +40,7 @@ def generate_roblox_script(prompt):
     )
     return response.choices[0].message.content
 
-# --- INTERFACE WEB ---
+
 st.title("🎮 Roblox Script Master AI")
 st.subheader("Génère tes scripts Luau en un clic")
 
@@ -59,4 +59,5 @@ if st.button("Générer le code"):
             except Exception as e:
                 st.error(f"Erreur : {e}")
     else:
+
         st.warning("Écris quelque chose avant de valider.")
