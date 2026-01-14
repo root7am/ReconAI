@@ -22,8 +22,6 @@ def encode_image(image_file):
 st.markdown("""
     <style>
     .stApp { background-color: #050505; color: #e0e0e0; }
-    
-    /* Header avec Avatar Custom */
     .credit-header {
         background: rgba(15, 15, 15, 0.95);
         border: 1px solid #1f1f1f;
@@ -33,8 +31,6 @@ st.markdown("""
     }
     .user-avatar { width: 55px; height: 55px; border-radius: 50%; border: 2px solid #ff4b4b; object-fit: cover; }
     .credit-amount { color: #ff4b4b; font-weight: bold; font-size: 1.3rem; }
-    
-    /* Boutique plein écran */
     .shop-container {
         background: #0d0d0d; border: 1px solid #ff4b4b;
         padding: 40px; border-radius: 15px; text-align: center;
@@ -45,18 +41,15 @@ st.markdown("""
         padding: 20px; border-radius: 10px; margin: 10px;
         display: inline-block; width: 280px; vertical-align: top;
     }
-    
-    /* Sidebar et Logs */
     .log-title { color: #ff4b4b; font-weight: bold; margin-top: 25px; border-bottom: 1px solid #1f1f1f; padding-bottom: 5px; }
-    .stChatMessage { background-color: #0d0d0d !important; border: 1px solid #1a1a1a !important; border-radius: 10px !important; }
     </style>
     """, unsafe_allow_html=True)
 
 
 try:
     client = Groq(api_key=st.secrets["GROQ_API_KEY"])
-except:
-    st.error("GROQ_API_KEY manquante dans les Secrets.")
+except Exception:
+    st.error("GROQ_API_KEY manquante dans les Secrets Streamlit.")
 
 
 with st.sidebar:
@@ -69,14 +62,14 @@ with st.sidebar:
     else:
         rank, user_name, credits_val = "FREE", "CIVILIAN", str(st.session_state.credits)
 
-   
+    
     st.markdown('<div class="log-title">📸 ANALYSE IMAGE</div>', unsafe_allow_html=True)
-    uploaded_file = st.file_uploader("Upload une capture (Bug/Script)", type=["png", "jpg", "jpeg"])
+    uploaded_file = st.file_uploader("Upload une erreur (ex: Image_8f6ea3.png)", type=["png", "jpg", "jpeg"])
 
     
     st.markdown('<div class="log-title">📜 LOGS DE SESSION</div>', unsafe_allow_html=True)
     if not st.session_state.full_history:
-        st.caption("Aucune archive.")
+        st.caption("Aucune archive disponible.")
     else:
         for log in reversed(st.session_state.full_history):
             with st.expander(f"🕒 {log['time']} | {log['query']}"):
@@ -88,7 +81,7 @@ with st.sidebar:
         st.rerun()
 
 
-custom_avatar = "https://cdn-icons-png.flaticon.com/512/6033/6033716.png" # Image Meta Custom
+custom_avatar = "https://cdn-icons-png.flaticon.com/512/6033/6033716.png" 
 st.markdown(f"""
     <div class="credit-header">
         <div style="display:flex; align-items:center; gap:15px;">
@@ -110,7 +103,7 @@ if rank == "FREE" and st.session_state.credits <= 0:
     st.markdown("""
         <div class="shop-container">
             <h2 style="color:#ff4b4b;">OFFLINE - CRÉDITS ÉPUISÉS</h2>
-            <p>Upgrade ton rang pour continuer à utiliser RECON API.</p>
+            <p>Upgrade ton rang pour continuer à utiliser ReconAI.</p>
             <div class="shop-card">
                 <h3>💠 PREMIUM</h3>
                 <div style="color:#ff4b4b; font-size:1.8rem; font-weight:bold;">4.99€</div>
@@ -126,46 +119,44 @@ if rank == "FREE" and st.session_state.credits <= 0:
         </div>
     """, unsafe_allow_html=True)
 else:
-    # Affichage de la discussion
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    
     if prompt := st.chat_input("Initialisation de la commande..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
         with st.chat_message("assistant"):
-            with st.spinner("SCANNING..."):
+            with st.spinner("SCANNING SYSTEM..."):
                 try:
-                    # Choix du modèle (Vision ou Texte)
+                    # Gestion Vision vs Texte
                     if uploaded_file:
                         base64_image = encode_image(uploaded_file)
-                        model_choice = "llama-3.2-11b-vision-preview"
-                        user_content = [
+                        model_to_use = "llama-3.2-11b-vision-preview"
+                        user_message = [
                             {"type": "text", "text": prompt},
                             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
                         ]
                     else:
-                        model_choice = "llama-3.3-70b-versatile"
-                        user_content = prompt
+                        model_to_use = "llama-3.3-70b-versatile"
+                        user_message = prompt
 
                     completion = client.chat.completions.create(
-                        model=model_choice,
+                        model=model_to_use,
                         messages=[{"role": "system", "content": "Tu es ReconAI. Expert Roblox Luau. Réponds en Luau technique."}] + 
-                                 [{"role": "user", "content": user_content}]
+                                 [{"role": "user", "content": user_message}]
                     )
                     
                     full_response = completion.choices[0].message.content
                     st.markdown(full_response)
                     st.session_state.messages.append({"role": "assistant", "content": full_response})
                     
-                    # Sauvegarde logs et crédits
+                    # Enregistrement Log
                     st.session_state.full_history.append({
                         "time": datetime.datetime.now().strftime("%H:%M"),
-                        "query": "Vision" if uploaded_file else prompt[:20],
+                        "query": "Analyse Vision" if uploaded_file else prompt[:20],
                         "code": full_response
                     })
                     
